@@ -59,7 +59,7 @@ Requirements and Guidelines
 
   - http://query.yahooapis.com/v1/public/yql?q=select%20item%20from%20weather.forecast%20where%20location%3D%2210001%22&format=json
 
-* For AngularJS with JSONP:
+* To use with AngularJS and JSONP:
   
   - http://query.yahooapis.com/v1/public/yql?q=select%20item%20from%20weather.forecast%20where%20location=10001&format=json&callback=JSON_CALLBACK
 
@@ -76,7 +76,7 @@ Milestones and Deliverables
 
 Bonus and Bonii
 ===============
-* Your implementation should allow the user to bookmark and share the URL to display the weather for any location.
+* Allow the user to bookmark and share the URL to display the weather for any location.
 * Fork this repository and submit your deliveries using pull requests
 * Feel free to ask any questions.
 
