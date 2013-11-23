@@ -63,8 +63,6 @@ Requirements and Guidelines
   
   - http://query.yahooapis.com/v1/public/yql?q=select%20item%20from%20weather.forecast%20where%20location=10001&format=json&callback=JSON_CALLBACK
 
-* Bonus feature, your implementation should allow the user to share and bookmark the URL to display the weather for any location.
-
 Feel free to ask any questions. Good Luck!
 
 Milestones and Deliverables
@@ -75,4 +73,10 @@ Milestones and Deliverables
 
 2. Working and demonstration ready code.
 
+
+Bonus and Bonii
+===============
+* Your implementation should allow the user to bookmark and share the URL to display the weather for any location.
+* Fork this repository and submit your deliveries using pull requests
+* Feel free to ask any questions.
 
