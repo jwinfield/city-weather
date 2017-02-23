@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
+<script src="http://code.jquery.com/jquery.min.js"></script>
+<link href="http://getbootstrap.com/2.3.2/assets/css/bootstrap.css" rel="stylesheet" type="text/css" />
+<link href="http://getbootstrap.com/2.3.2/assets/css/bootstrap-responsive.css" rel="stylesheet" type="text/css" />
+<script src="http://getbootstrap.com/2.3.2/assets/js/bootstrap.js"></script>
+<meta charset=utf-8 />
+<title>Your city weather</title>
+
+<style id="jsbin-css">
+h1 {
+  color: #fff;
+  font-size: 20px;
+  line-height: unset;
+  margin: 0;
+}
+
+h2 {
+  color: #000;
+  font-size: 16px;
+}
+
+.content {
+  background-color: #000;
+  padding: 20px;
+}
+
+.locations {
+  background-color: #333;
+  color: #ddd;
+  height: 100%;
+  overflow: auto;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+.location-temp, .location-condition {
+  font-size: 24px;
+  margin: 10px 0;
+}
+
+@media (max-width: 767px) {
+  .locations {
+    height: 123px;
+  }
+}
+
+.zip-search {
+  margin-bottom: 1px;
+}
+
+.city {
+  font-size: 2.2em;
+  font-weight: bold;
+  color: #ddd;
+  margin: 0;
+  line-height: 40px;
+}
+
+.city:hover {
+  cursor: pointer;
+}
+
+.city.selected {
+  background-color: #fff;
+  color: #333;
+  border-radius: 5px;
+}
+
+.city > span {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.weather {
+  background-color: #3aa;
+  margin-top: 0px;
+  padding: 20px;
+  border-radius: 5px;
+}
+
+.forecast-day {
+  background-color: #2a5b8c;
+  color: #ff0;
+  min-width: 96px;
+  min-height: 116px;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+}
+</style>
+</head>
+<body ng-app="weatherApp">
+
+  <div class="container-fluid content" ng-controller="WeatherView.weatherController" ng-init="initialize()">
+    <div class="row-fluid">
+      <div class="span12">
+        <h1>City Weather</h1>
+      </div>
+    </div>
+    <div class="row-fluid">
+      <div class="span4">
+        <div class="row-fluid">
+          <div class="span12 zip-search">
+            <input type="text" class="zip-search input-block-level" placeholder="Enter a zip code or select a city name" ng-model="lookupZip" ng-change="showWeatherByZip(lookupZip)">
+          </div>
+        </div>
+        <div class="locations">
+          <div class="city" ng-repeat="location in locations" ng-click="showWeatherByLocation(location)" ng-class="{selected : isSelected(location) }">
+            <span>{{location.name}}</span>
+          </div>
+        </div>
+      </div>
+      <div class="weather span8">
+        <h2>{{weather.title}}</h2>
+        <div ng-class="{hide : !hasForecast()}" class="weather-detail">
+          <div class="location-temp">{{weather.condition.temp}}</div>
+          <div class="location-condition">{{weather.condition.text}}</div>
+          <hr>
+          <h4>5 day Forecast</h4>
+          <div class="row-fluid">
+            <div class="span2" ng-repeat="forecast in weather.forecast | limitTo:5 ">
+              <div class="forecast-day">
+                <div>{{forecast.day}}</div>
+                <div>Hi: {{forecast.high}}</div>
+                <div>Lo: {{forecast.low}}</div>
+                <div>{{forecast.text}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+var module = angular.module('weatherApp', []);
+
+var locations = [
+  { woeid: '2367105', name: 'Boston' },
+  { woeid: '2459115', name: 'New York' },
+  { woeid: '2471217', name: 'Philadelphia' },
+  { woeid: '2514815', name: 'Washington D.C.' },
+  { woeid: '2357024', name: 'Atlanta' },
+  { woeid: '2450022', name: 'Miami' },
+  { woeid: '2388929', name: 'Dallas' },
+  { woeid: '2379574', name: 'Chicago' },
+  { woeid: '2486982', name: 'St. Louis' },
+  { woeid: '2391279', name: 'Denver' },
+  { woeid: '2436704', name: 'Las Vegas' },
+  { woeid: '2471390', name: 'Phoenix' },
+  { woeid: '2442047', name: 'Los Angeles' },
+  { woeid: '2487956', name: 'San Francisco' },
+  { woeid: '2490383', name: 'Seattle' }
+];
+
+var _weatherView = {
+  weatherController: function($scope, $http, $q, $location) {
+    var yqlApi = 'http://query.yahooapis.com/v1/public/yql';
+    var zipRegEx = new RegExp(/^[0-9]{5}(?:-[0-9]{4})?$/);
+
+    $scope.initialize = function() {
+      $scope.locations = locations;
+      $scope.currentLocation = null;
+      $scope.weather = { title: 'Select a city or enter a Zip code to see the current weather and 5 day forecast.' };
+      $scope.forecast = [];
+    };
+
+    $scope.showWeatherByLocation = function(location) {
+      $scope.lookupZip = '';
+      $scope.currentLocation = location;
+      $scope.showWeatherByWoeid(location.woeid);
+    };
+
+    $scope.showWeatherByWoeid = function(woeid) {
+      $http.defaults.useXDomain = true;
+      $http.jsonp($scope.makeForecastUrl(woeid)).
+      success(function(response) {
+        $scope.weather = response.query.results.channel.item;
+        $scope.forecast = response.query.results.channel.item.forecast;
+      });
+    };
+
+    $scope.showWeatherByZip = function(zip) {
+      if(zip.match(zipRegEx) === null) {
+        return;
+      }
+
+      $scope.currentLocation = null;
+      $http.defaults.useXDomain = true;
+
+      $http.jsonp($scope.makeLookupWoeidUrl(zip)).
+      success(function(response) {
+        if(response.query.results !== null) {
+          var woeid = response.query.results.place.woeid;
+          $scope.showWeatherByWoeid(woeid);
+        }
+      });
+    };
+
+    $scope.isSelected = function(location) {
+      return $scope.currentLocation && $scope.currentLocation === location;
+    };
+
+    $scope.hasForecast = function(location) {
+      return $scope.forecast && $scope.forecast.length > 1;
+    };
+
+    $scope.makeLookupWoeidUrl = function(text) {
+      return yqlApi + '?q=select woeid from geo.places where text=' + text + ' limit 1&format=json&callback=JSON_CALLBACK';
+    };
+
+    $scope.makeForecastUrl = function(location) {
+      return yqlApi + '?q=select item from weather.forecast where woeid=' + location + '&format=json&callback=JSON_CALLBACK';
+    };
+  }
+};
+
+WeatherView = _weatherView;
+</script>
+</body>
+</html>
